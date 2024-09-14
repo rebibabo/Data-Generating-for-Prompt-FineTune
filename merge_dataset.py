@@ -1,18 +1,22 @@
 import json
+from utils import load_jsonl
 
-with open('dataset/clean_seed.json', 'r', encoding='utf-8') as f:
-    clean_seed = json.load(f)
+if __name__ == '__main__':
+    with open('dataset/clean_seed.json', 'r', encoding='utf-8', errors='ignore') as f:
+        clean_seed = json.load(f)
 
-with open('dataset/lazy_augment.json', 'r', encoding='utf-8') as f:
-    lazy_augment = json.load(f)
+    with open('dataset/test.jsonl', 'w', encoding='utf-8', errors='ignore') as f:
+        for js in clean_seed:
+            json.dump(js, f, ensure_ascii=False)
+            f.write('\n')
 
-with open('dataset/implicit_augment.json', 'r', encoding='utf-8') as f:
-    implicit_augment = json.load(f)
+    lazy_augment = load_jsonl('dataset/lazy_augment.jsonl')
 
-merged_dataset = clean_seed + lazy_augment + implicit_augment
+    implicit_augment = load_jsonl('dataset/implicit_augment.jsonl')
 
-with open('dataset/merged_dataset.jsonl', 'w', encoding='utf-8') as f:
-    for data in merged_dataset:
-        new_js = {'input': data['input'], 'output': data['output'], 'instruction': data['instruction']}
-        json.dump(new_js, f, ensure_ascii=False)
-        f.write('\n')
+    merged_dataset = lazy_augment + implicit_augment
+
+    with open('dataset/train.jsonl', 'w', encoding='utf-8', errors='ignore') as f:
+        for js in merged_dataset:
+            json.dump(js, f, ensure_ascii=False)
+            f.write('\n')

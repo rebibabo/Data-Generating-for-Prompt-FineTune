@@ -48,7 +48,6 @@ class Log:
                     else:
                         self.logs.append(js)
         self.logs.append({'filename': basename, 'idx': self.last_idx})
-        self.f_w = open(log_path, 'w', encoding='utf-8')
 
     def update(self, idx: int):
         with open(self.log_path, 'w', encoding='utf-8') as f_a:
@@ -56,3 +55,34 @@ class Log:
             for js in self.logs:
                 f_a.write(json.dumps(js, ensure_ascii=False) + '\n')
         self.last_idx = idx
+
+def load_jsonl(file_path: str) -> list[dict]:
+    lines = open(file_path, 'r', encoding='utf-8', errors='ignore').readlines()
+    if not lines:
+        return []
+    data_list = []
+
+    if lines[0] == '{\n':
+        json_lines = []
+        for line in lines:
+            line = line.strip()
+            if line:
+                json_lines.append(line)
+            
+            if line == '}':
+                json_str = ''.join(json_lines)
+                json_obj = json.loads(json_str)
+                data_list.append(json_obj)
+                json_lines = []
+
+    else:
+        for line in lines:
+            line = line.strip()
+            if line:
+                data_list.append(json.loads(line))
+
+    # except json.JSONDecodeError as e:
+    #     print(f'Error decoding JSON: {e}')
+    #     data_list = []
+
+    return data_list

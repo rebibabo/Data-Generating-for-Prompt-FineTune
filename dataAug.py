@@ -5,20 +5,38 @@ from rouge_chinese import Rouge
 import jieba
 from typing import Literal
 from utils import Log, query, logger
+import os
 
 class DataAugmentation:
     client = OpenAI()
     references = []
     rouge = Rouge()
+    dataset = []
 
-    def __init__(self, 
-        rouge_type: Literal['rouge-1', 'rouge-2', 'rouge-l'] = 'rouge-l',
-        rouge_metric: Literal['f', 'p', 'r'] ='r',
-        min_rouge_score: float = 0.7,
-    ):
-        self.rouge_type = rouge_type
-        self.rouge_metric = rouge_metric
-        self.min_rouge_score = min_rouge_score
+    @ staticmethod
+    def from_file(file_path: str):
+        dataAug = DataAugmentation()
+        if not os.path.exists(file_path):
+            logger.error(f"🐞 File not found: {file_path}")
+            return None
+        
+        if file_path.endswith('.json'):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                dataAug.dataset = json.load(f)
+        elif file_path.endswith('.jsonl'):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    dataAug.dataset.append(json.loads(line))
+        else:
+            logger.error(f"🐞only support json or jsonl")
+
+        return dataAug
+
+    @ staticmethod
+    def from_dataset(dataset: list[dict]):
+        dataAug = DataAugmentation()
+        dataAug.dataset = dataset
+        return dataAug
 
     def get_score(self, response: str):
         try:
@@ -32,62 +50,75 @@ class DataAugmentation:
             logger.exception(f"🐞 Error in get_score function: {e}")
             return -1
 
-    def _insert(self, user_input: str, output: str='') -> bool:
+    def _insert(self, 
+        user_input: str, 
+        output: list[str] = [],
+        rouge_type: Literal['rouge-1', 'rouge-2', 'rouge-l'] = 'rouge-l',
+        rouge_metric: Literal['f', 'p', 'r'] ='r',
+        min_rouge_score: float = 0.7,
+        min_correct_score: int = 6,
+        min_natural_score: int = 6,
+    ) -> bool:
         if len(user_input) > 300:
-            logger.warning(f"🤮 The length of user input is too long: {user_input}")
+            logger.warning(f"🤮 The length of user input is too long")
             return False
 
-        hypothesis = ' '.join(jieba.cut(user_input))
-        for reference in self.references:
-            scores = self.rouge.get_scores(hypothesis, reference)
-            score = scores[0][self.rouge_type][self.rouge_metric]
-            if score > self.min_rouge_score:
-                logger.warning(f"🤢 repetitve user input: {user_input} with score {score:.4f}")
-                return False
+        if min_rouge_score > 0:
+            hypothesis = ' '.join(jieba.cut(user_input))
+            for reference in self.references:
+                scores = self.rouge.get_scores(hypothesis, reference)
+                score = scores[0][rouge_type][rouge_metric]
+                if score > min_rouge_score:
+                    logger.warning(f"🤢 repetitve user input: {user_input} with score {score:.4f}")
+                    return False
 
-        if output:
-            prompt = correct_prompt.format(user_input, output)
+        if min_natural_score > 0:
+            prompt = natural_prompt.format(user_input)
             response = query(prompt)
             score = self.get_score(response)
-            if score < 7:
-                logger.warning(f"🥶 The correctness of output is too low: {user_input} {output} => {score}")
+            if score < min_natural_score:
+                logger.warning(f"🥵 The naturalness of user input is too low: {user_input} => {score}")
                 return False
 
-        prompt = natural_prompt.format(user_input)
-        response = query(prompt)
-        score = self.get_score(response)
-        if score < 6:
-            logger.warning(f"🥵 The naturalness of user input is too low: {user_input} => {score}")
-            return False
+        if min_correct_score > 0:
+            for intention in output:
+                prompt = correct_prompt.format(user_input, intention)
+                response = query(prompt)
+                score = self.get_score(response)
+                if score < min_correct_score:
+                    logger.warning(f"🥶 The correctness of output is too low: {user_input} {output} => {score}")
+                    return False
 
         self.references.append(hypothesis)
         return True
 
-    def load_dataset(self, dataset, input_key_name, output_key_name='', raw=False):
+    def cleanse(self, save_path='', **kwargs):
         new_dataset = []
-        tot = len(dataset)
-        for i, js in enumerate(dataset):
-            user_input = js[input_key_name]
-            output = str(js[output_key_name]) if output_key_name else ''
-            if not raw or self._insert(user_input, output):
+        tot = len(self.dataset)
+        for i, js in enumerate(self.dataset):
+            user_input = js['input']
+            output = js['output']
+            if self._insert(user_input, output, **kwargs):
                 logger.success(f"🎉 {i+1} / {tot} Successfully add the user input: {user_input}")
                 new_dataset.append(js)
+        if save_path:
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(new_dataset, f, ensure_ascii=False, indent=4)
+        self.dataset = new_dataset
         return new_dataset
 
     def augment(self, 
-        dataset: list[dict], 
         aug_prompt: str,
         output_path: str,
-        input_key_name: str = 'input', 
-        output_key_name: str = 'output',
         repeat_num: int = 3,
+        **kwargs
     ):
         log = Log(output_path)
         last_idx = log.last_idx
         f = open(output_path, 'a', encoding='utf-8')
         augment_dataset = []
-        for i, js in enumerate(dataset[last_idx:]):
-            input_ = js[input_key_name]
+        for i, js in enumerate(self.dataset[last_idx:]):
+            input_ = js['input']
             history = []
             for j in range(repeat_num):
                 prompt = aug_prompt.format(
@@ -98,11 +129,11 @@ class DataAugmentation:
                     ])
                 )
                 aug_input = query(prompt)
-                if self._insert(aug_input, str(js[output_key_name])):
+                if self._insert(aug_input, js['output'], **kwargs):
                     js_copy = js.copy()
-                    js_copy[input_key_name] = aug_input
+                    js_copy['input'] = aug_input
                     js_copy['original_input'] = input_
-                    logger.success(f"🎉 {i+1} / {len(dataset)} - {j+1} / {repeat_num} - Successfully add the augmented input: {aug_input}")
+                    logger.success(f"🎉 {i+1+last_idx} / {len(self.dataset)} - {j+1} / {repeat_num} - Successfully add the augmented input: {aug_input}")
                     history.append(aug_input)
                     augment_dataset.append(js_copy)
                     j += 1
@@ -117,37 +148,16 @@ if __name__ == '__main__':
     rouge_metric = 'r'
     min_rouge_score = 0.7
 
-    dataAug = DataAugmentation(
-        rouge_type=rouge,
-        rouge_metric=rouge_metric,
-        min_rouge_score=min_rouge_score,
-    )
+    # dataAug = DataAugmentation.from_file('dataset/seed.jsonl')
+    # dataset = dataAug.cleanse(save_path='dataset/clean_seed.json')
 
-    dataset = json.load(open('dataset/seed.json', 'r', encoding='utf-8'))
-    clean_dataset = dataAug.load_dataset(
-        dataset, 
-        input_key_name='input', 
-        output_key_name='output',
-        raw=True
-    )
-    with open('dataset/clean_seed.json', 'w', encoding='utf-8') as f:
-        json.dump(clean_dataset, f, ensure_ascii=False, indent=4)
-
-    dataset = json.load(open('dataset/clean_seed.json', 'r', encoding='utf-8'))
-
-    lazy_augment = dataAug.augment(
-        dataset, 
-        lazy_prompt, 
-        input_key_name='input', 
-        output_key_name='output',
-        output_path='dataset/lazy_augment.jsonl'
-    )
-
-    # implicit_augment = dataAug.augment(
-    #     dataset, 
-    #     implicit_prompt, 
-    #     input_key_name='input', 
-    #     output_key_name='output',
+    dataAug = DataAugmentation.from_file('dataset/clean_seed.json')
+    # lazy_augment = dataAug.augment(
+    #     lazy_prompt, 
+    #     output_path='dataset/lazy_augment.jsonl'
     # )
-    # with open('dataset/implicit_augment.json', 'w', encoding='utf-8') as f:
-    #     json.dump(implicit_augment, f, ensure_ascii=False, indent=4)
+
+    implicit_augment = dataAug.augment(
+        implicit_prompt, 
+        output_path='dataset/implicit_augment.jsonl',
+    )

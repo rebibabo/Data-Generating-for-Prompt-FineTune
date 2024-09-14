@@ -118,24 +118,10 @@ You must just give a score without any other reasons.
 '''
 
 correct_prompt = '''
-We would like you to evaluate the correctness of the answer to the question, the answer is about the intentions of the question.
-You should give an overall score on a scale of 1 to 10, where a higher score indicates higher correctness.
-If the question contains ALL the keywords of the intentions, the score will be 10.
-If the question lack any of the intentions, the score will be 0.
-You must just give a score without any other reasons.
-
-Example:
-## Question: 
-如何申请免费的云盘会员？
-## Answer: 
-['云盘会员']
-## Score: 10
-
-## Question: 
-有没有什么办法可以吸引更多志愿者来参加社区活动？
-## Answer: 
-["组团领红包"]
-## Score: 3
+Evaluate if the #intention# is a clear intent within the #question#.
+You should give an overall score on a scale of 1 to 10.
+10 indicates a clear and direct intent, and 1 indicates the intent is not present or unclear.
+Only provide the score without any additional explanation.
 
 ## Question:
 {}
@@ -169,8 +155,8 @@ Example:
 
 implicit_prompt = '''
 I want you act as a Prompt Rewriter.
-Your objective is to rewrite a #Given Prompt# into a more implicit version to imiatate a user who does not have a strong intention.
-Implicit means that the prompt does not necessarily contain the key words in #intentions# but still conveys the same meaning.
+Your objective is to rewrite a #Given Prompt# into a more implicit version.
+Implicit means that the prompt does not necessarily contain the key words in #intentions# but still contains the same intentions.
 But the #Rewritten Prompt# MUST be natural and not too verbose to imitate a real user input.
 Also, the #Rewritten Prompt# MUST be different from the #Given Prompt# and #Previous Generated Prompts#.
 
