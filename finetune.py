@@ -55,7 +55,7 @@ def formatting_prompts_func(examples):
     return { "text" : texts, }
 
 from datasets import load_dataset
-dataset = load_dataset('json', data_files='merged_dataset.jsonl', split='train')
+dataset = load_dataset('json', data_files='dataset/merged_dataset.jsonl', split='train')
 dataset = dataset.map(formatting_prompts_func, batched = True,)
 
 from trl import SFTTrainer

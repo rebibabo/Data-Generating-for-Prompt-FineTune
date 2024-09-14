@@ -3,3 +3,4 @@ outputs
 .env
 linux-*
 __pycache__
+*.log

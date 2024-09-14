@@ -44,7 +44,7 @@ def query(instruction, user_input):
     output = tokenizer.batch_decode(output, skip_special_tokens = True)[0]
     return output
 
-with open('test.jsonl', 'r') as f:
+with open('dataset/test.jsonl', 'r') as f:
     lines = f.readlines()
     for line in lines:
         data = json.loads(line)
