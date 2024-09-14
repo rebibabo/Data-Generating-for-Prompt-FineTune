@@ -1,0 +1,6 @@
+lora_model
+outputs
+.env
+linux-*
+train.jsonl
+__pycache__
