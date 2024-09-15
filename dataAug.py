@@ -52,7 +52,7 @@ class DataAugmentation:
 
     def _insert(self, 
         user_input: str, 
-        output: list[str] = [],
+        query: list[str] = [],
         rouge_type: Literal['rouge-1', 'rouge-2', 'rouge-l'] = 'rouge-l',
         rouge_metric: Literal['f', 'p', 'r'] ='r',
         min_rouge_score: float = 0.7,
@@ -81,12 +81,12 @@ class DataAugmentation:
                 return False
 
         if min_correct_score > 0:
-            for intention in output:
+            for intention in query:
                 prompt = correct_prompt.format(user_input, intention)
                 response = query(prompt)
                 score = self.get_score(response)
                 if score < min_correct_score:
-                    logger.warning(f"🥶 The correctness of output is too low: {user_input} {output} => {score}")
+                    logger.warning(f"🥶 The correctness of query is too low: {user_input} {query} => {score}")
                     return False
 
         self.references.append(hypothesis)
@@ -97,8 +97,8 @@ class DataAugmentation:
         tot = len(self.dataset)
         for i, js in enumerate(self.dataset):
             user_input = js['input']
-            output = js['output']
-            if self._insert(user_input, output, **kwargs):
+            query = js['query']
+            if self._insert(user_input, query, **kwargs):
                 logger.success(f"🎉 {i+1} / {tot} Successfully add the user input: {user_input}")
                 new_dataset.append(js)
         if save_path:
@@ -130,7 +130,7 @@ class DataAugmentation:
                     ])
                 )
                 aug_input = query(prompt)
-                if self._insert(aug_input, js['output'], **kwargs):
+                if self._insert(aug_input, js['query'], **kwargs):
                     js_copy = js.copy()
                     js_copy['input'] = aug_input
                     js_copy['original_input'] = input_
