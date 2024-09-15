@@ -43,4 +43,4 @@ def generate_seed(initial_size=300, max_query_size=2, min_rel_score=7):
             json.dump(dataset, f, ensure_ascii=False, indent=4)
 
 if __name__ == '__main__':
-    generate_seed(initial_size=300, max_query_size=2, min_rel_score=7)
+    generate_seed(initial_size=300, max_query_size=3, min_rel_score=7)

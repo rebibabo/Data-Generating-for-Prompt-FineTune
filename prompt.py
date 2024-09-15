@@ -80,21 +80,22 @@ You must just give a score without any other reasons.
 '''
 
 example_prompt = '''
-你是一名aibox的用户，假设你正在和aibox聊天，请你模拟真实环境下，根据你的#意图列表#，输出真实的#用户输入#，
-要求：生成的#用户输入#中必须包含有#意图列表#中的所有意图。
+假设你是一名用户，请你模拟真实环境下，根据#关键词#，输出#用户输入#，
+要求：生成的#用户输入#中必须包含有所有的#关键词#
 #用户输入#的提问方式可以各种各样，例如“如何”，“怎样”，“xxx是什么”，“xxx怎么用”等等。
+#用户输入#要尽可能自然流畅，不要太过冗长。
 "用户输入"不允许出现在#用户输入#中
 
 样例1
-#意图列表#: 合影
-#用户输入#: 怎么在图库中找到之前的一张合影？
+#关键词#: ["欢乐透"]
+#用户输入#: 欢乐透怎么参与呢？
 
 样例2：
-#意图列表#: 智能美颜，美图收藏馆
+#关键词#: ["月月抽好礼", "现金活动"]
 #用户输入#: 怎么找到美图的模板，并且智能美颜呢？
 
 开始：
-#意图列表#: {query}
+#关键词#: {query}
 #用户输入#:
 '''
 
@@ -119,15 +120,15 @@ You must just give a score without any other reasons.
 
 correct_prompt = '''
 Evaluate if the #intention# is a clear intent within the #question#.
-You should give an overall score on a scale of 1 to 10.
+You should give an overall #score# on a scale of 1 to 10.
 10 indicates a clear and direct intent, and 1 indicates the intent is not present or unclear.
 Only provide the score without any additional explanation.
 
-## Question:
+#question#:
 {}
-## Answer:
+#intention#:
 {}
-## Score:
+#score#:
 '''
 
 lazy_prompt = '''
