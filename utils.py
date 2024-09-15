@@ -3,10 +3,20 @@ import sys
 import json
 from openai import OpenAI
 from loguru import logger
+import numpy as np
+import random
+import torch
 
 logger.remove(0)
 logger.add(sys.stderr, format="<level>{level}</level> | <level>{message}</level>")
 logger.add("data_aug.log", rotation="10 MB")
+
+def set_seed(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 client = OpenAI()
 def query(user_input: str, 
@@ -56,6 +66,13 @@ class Log:
                 f_a.write(json.dumps(js, ensure_ascii=False) + '\n')
         self.last_idx = idx
 
+    def set_zero(self):
+        self.last_idx = 0
+        self.logs[-1]['idx'] = 0
+        with open(self.log_path, 'w', encoding='utf-8') as f_a:
+            for js in self.logs:
+                f_a.write(json.dumps(js, ensure_ascii=False) + '\n')
+
 def load_jsonl(file_path: str) -> list[dict]:
     lines = open(file_path, 'r', encoding='utf-8', errors='ignore').readlines()
     if not lines:
@@ -80,9 +97,5 @@ def load_jsonl(file_path: str) -> list[dict]:
             line = line.strip()
             if line:
                 data_list.append(json.loads(line))
-
-    # except json.JSONDecodeError as e:
-    #     print(f'Error decoding JSON: {e}')
-    #     data_list = []
 
     return data_list

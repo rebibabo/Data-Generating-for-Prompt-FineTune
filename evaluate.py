@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from unsloth import FastLanguageModel
 import json
+from tqdm import tqdm
 
 max_seq_length = 2048 # Choose any! We auto support RoPE Scaling internally!
 dtype = None # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
@@ -44,14 +45,37 @@ def query(instruction, user_input):
     output = tokenizer.batch_decode(output, skip_special_tokens = True)[0]
     return output
 
-with open('dataset/test.jsonl', 'r') as f:
-    lines = f.readlines()
-    for line in lines:
-        data = json.loads(line)
-        instruction = data['instruction']
-        input_ = data['input']
-        output = query(instruction, input_).split('### Response:\n')[-1]
-        print('input:', input_)
-        print('generated output:', output)
-        print('golden output:', data['output'])
-        print()
+def metric(pred, gold):
+    TP = len(set(pred) & set(gold))
+    P = len(pred)
+    R = len(gold)
+    precision = TP / P if P > 0 else 0
+    recall = TP / R if R > 0 else 0
+    f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+    return precision, recall, f1_score
+
+def evaluate(test_file: str, wrong_output_file: str):
+    wrong_data = []
+    tot_precision, tot_recall, tot_f1_score = 0, 0, 0
+    with open(test_file, 'r') as f:
+        lines = f.readlines()
+        bar = tqdm(total=len(lines))
+        for i, line in enumerate(lines):
+            data = json.loads(line)
+            instruction = data['instruction']
+            input_ = data['input']
+            output = eval(query(instruction, input_).split('### Response:\n')[-1])
+            gold = data['output']
+            precision, recall, f1_score = metric(output, gold)
+            bar.update(1)
+            tot_precision += precision
+            tot_recall += recall
+            tot_f1_score += f1_score
+            bar.set_description(f"P: {tot_precision/(i+1):.4f}, R: {tot_recall/(i+1):.4f}, F1: {tot_f1_score/(i+1):.4f}")
+            if output!= gold:
+                wrong_data.append(data)
+        bar.close()
+
+    with open(wrong_output_file, 'w', encoding='utf-8') as f:
+        for data in wrong_data:
+            f.write(json.dumps(data) + '\n')

@@ -111,10 +111,11 @@ class DataAugmentation:
         aug_prompt: str,
         output_path: str,
         repeat_num: int = 3,
+        from_log: bool = True,
         **kwargs
     ):
         log = Log(output_path)
-        last_idx = log.last_idx
+        last_idx = log.last_idx if from_log else 0
         f = open(output_path, 'a', encoding='utf-8')
         augment_dataset = []
         for i, js in enumerate(self.dataset[last_idx:]):
