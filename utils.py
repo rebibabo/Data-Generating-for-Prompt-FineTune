@@ -6,6 +6,8 @@ from loguru import logger
 import numpy as np
 import random
 import torch
+from dotenv import load_dotenv
+load_dotenv()
 
 logger.remove(0)
 logger.add(sys.stderr, format="<level>{level}</level> | <level>{message}</level>")

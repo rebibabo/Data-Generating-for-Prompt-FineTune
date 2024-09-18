@@ -4,6 +4,7 @@ from unsloth import FastLanguageModel
 from transformers import TextStreamer
 import json
 from tqdm import tqdm
+import time
 
 alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
@@ -54,13 +55,24 @@ class Evaluator:
         wrong_data = []
         tot_precision, tot_recall, tot_f1_score = 0, 0, 0
         with open(test_file, 'r') as f:
-            lines = f.readlines()
-            bar = tqdm(total=len(lines))
-            for i, line in enumerate(lines):
-                data = json.loads(line)
+            if test_file.endswith('.jsonl'):
+                lines = f.readlines()
+                dataset = [json.loads(line) for line in lines]
+            elif test_file.endswith('.json'):
+                dataset = json.load(f)
+            else:
+                raise ValueError('Unsupported file format')
+            bar = tqdm(total=len(dataset))
+            for i, data in enumerate(dataset):
                 instruction = data['instruction']
                 input_ = data['input']
-                output = eval(self.inference(instruction, input_).split('### Response:\n')[-1])
+                while True:
+                    try:
+                        output = eval(self.inference(instruction, input_).split('### Response:\n')[-1])
+                        break
+                    except:
+                        print(f"Error in inference for {i}th data")
+                        time.sleep(1)
                 gold = data['output']
                 precision, recall, f1_score = self.metric(output, gold)
                 bar.update(1)
@@ -77,6 +89,6 @@ class Evaluator:
                 for data in wrong_data:
                     f.write(json.dumps(data, ensure_ascii=False) + '\n')
 
-        return {'precision': tot_precision/len(lines), \
-                'recall': tot_recall/len(lines), \
-                'f1_score': tot_f1_score/len(lines)}
+        return {'precision': tot_precision/len(dataset), \
+                'recall': tot_recall/len(dataset), \
+                'f1_score': tot_f1_score/len(dataset)}
