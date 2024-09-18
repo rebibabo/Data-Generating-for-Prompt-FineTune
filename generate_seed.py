@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 import pandas as pd
 from prompt import example_prompt, relevant_prompt
 import random

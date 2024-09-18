@@ -66,7 +66,7 @@ arguments = TrainingArguments(
     gradient_accumulation_steps = 4,
     warmup_steps = 5,
     # num_train_epochs = 1, # Set this for 1 full training run.
-    max_steps = 30,
+    max_steps = 60,
     learning_rate = 2e-4,
     fp16 = not is_bfloat16_supported(),
     bf16 = is_bfloat16_supported(),
@@ -105,6 +105,8 @@ for i in range(10):
 
     dataAug = DataAugmentation.from_file('dataset/wrong_data.jsonl')
     augDataset = dataAug.augment(lazy_prompt, output_path='dataset/train.jsonl', from_log=False, repeat_num=3)
+
+    dataAug = DataAugmentation.from_file('dataset/wrong_data.jsonl')
     augDataset = dataAug.augment(implicit_prompt, output_path='dataset/train.jsonl', from_log=False, repeat_num=3)
 
     dataset = load_dataset('json', data_files='dataset/train.jsonl', split='train')

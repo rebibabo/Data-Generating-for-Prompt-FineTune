@@ -190,6 +190,7 @@ class DataAugmentation:
         repeat_num: int = 3,
         from_log: bool = True,
         pool_size: int = 10,
+        indent: int = None, 
         min_natural_score: int = 7,
         min_correct_score: int = 7,
         **kwargs
@@ -214,7 +215,7 @@ class DataAugmentation:
                 if output_js:
                     for js in output_js:
                         augment_dataset.append(js)
-                        f.write(json.dumps(js, ensure_ascii=False, indent=4) + '\n')
+                        f.write(json.dumps(js, ensure_ascii=False, indent=indent) + '\n')
                 history.append(aug_input)
             log.update(i+last_idx)
         f.close()
