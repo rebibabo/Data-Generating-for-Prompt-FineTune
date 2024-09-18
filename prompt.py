@@ -110,29 +110,25 @@ You must just give a score without any other reasons.
 '''
 
 natural_prompt = '''
-We would like you to evaluate the naturalness of the following question.
-You should give an overall score on a scale of 1 to 10, where a higher score indicates higher naturalness.
-You must just give a score without any other reasons.
-## Question:
+请你对下面的#问题#列表进行打分，评价其自然程度以及语法正确性。
+你应该给出一个1-10的分数，10分表示自然度较高，语法正确，而1分表示自然度较低，语法不正确。
+请返回一个分数列表，表示每一个问题的分数，用[]包裹，不要提供任何其他原因，且分数不要出现在回答中。
+
+#问题#：
 {}
-## Score:
+#分数#：
 '''
 
 correct_prompt = '''
-Evaluate if the #intention# is a clear intent within the #question#.
-You should give an overall #score# on a scale of 1 to 10.
-10 indicates a clear and direct intent, and 1 indicates the intent is not present or unclear.
-Only provide the score without any additional explanation.
+请你单独评价下面的每一对#问题#是否包含对应编号的所有#意图#。
+你应该给出一个1-10的分数，10分表示#问题#包含所有意图，1分表示存在#问题#中缺少#意图#中的某一个。
+请返回一个分数列表，表示每一个问题的分数，用[]包裹，不要提供任何其他原因，且分数不要出现在回答中。
 
-#question#:
 {}
-#intention#:
-{}
-#score#:
+#分数#：
 '''
 
 lazy_prompt = '''
-I want you act as a Prompt Rewriter.
 Your Objective is to rewrite a #Given Prompt# into an easier one to imitate a lazy user's input question.
 #Rewritten Prompt# MUST contain ALL the #intentions# and 
 removing all the sentences that does not contain the key words of #intentions#.

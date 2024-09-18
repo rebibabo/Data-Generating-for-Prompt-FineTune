@@ -16,7 +16,7 @@ def generate_seed(initial_size=300, max_query_size=2, min_rel_score=7):
     queries = list(mapping.keys())
     instruction = instruction.format(intentions=str(list(set(mapping.values()))))
     while len(dataset) < initial_size:
-        random_size = random.randint(1, 2)
+        random_size = random.randint(1, max_query_size)
         random_queries = list(set(random.sample(queries, random_size)))
         if tuple(random_queries) in query_set:
             logger.warning(f"🤢 repetitve query set: {random_queries}")
@@ -25,7 +25,10 @@ def generate_seed(initial_size=300, max_query_size=2, min_rel_score=7):
         if len(random_queries) > 1:
             prompt = relevant_prompt.format(str(random_queries))
             response = query(prompt)
-            if response and response[0].isdigit():
+            if not response or len(response) > 10:
+                logger.error(f"🤔 The response is not valid")
+                continue
+            if response[0].isdigit():
                 score = int(response)
                 if score < min_rel_score:
                     logger.warning(f"☠️ The relevantness of query set is too low: {random_queries} => {score}")

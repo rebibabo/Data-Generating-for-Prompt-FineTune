@@ -21,7 +21,7 @@ def set_seed(seed: int):
 client = OpenAI()
 def query(user_input: str, 
     system_prompt: str = '', 
-    model="gpt-4o-mini-2024-07-18", 
+    model="gpt-4o-mini", 
     temperature: float = 1.5, 
     max_tokens: int = 2000, 
     seed: int = 42
