@@ -1,3 +1,21 @@
-Run 1: {'precision': 0.6686666666666669, 'recall': 0.6857142857142858, 'f1_score': 0.6406258503401363}
-Run 1: {'precision': 0.8205714285714285, 'recall': 0.758095238095238, 'f1_score': 0.7646122448979593}
-Run 1: {'precision': 0.8228571428571428, 'recall': 0.7799999999999998, 'f1_score': 0.7838639455782315}
+Run 1
+	precision:  0.8470
+	recall:  0.7810
+	f1_score:  0.7944
+	train dataset size: 905
+	wrong dataset size: 97
+
+Run 2
+	precision:  0.7225
+	recall:  0.8152
+	f1_score:  0.7431
+	train dataset size: 1223
+	wrong dataset size: 116
+
+Run 1
+	precision:  0.7518
+	recall:  0.7733
+	f1_score:  0.7400
+	train dataset size: 523
+	wrong dataset size: 119
+

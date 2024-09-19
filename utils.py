@@ -25,7 +25,7 @@ def query(user_input: str,
     system_prompt: str = '', 
     model="gpt-4o-mini", 
     temperature: float = 1.5, 
-    max_tokens: int = 2000, 
+    max_tokens: int = 200, 
     seed: int = 42
 ) -> str:
     completion = client.chat.completions.create(

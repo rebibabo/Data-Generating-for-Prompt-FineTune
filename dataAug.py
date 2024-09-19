@@ -27,7 +27,7 @@ class QueryPool:
         try:
             if response and response[0] == '[' and response[-1] == ']':
                 scores = eval(response)
-                if isinstance(scores, list) and len(scores) == self.pool_size:
+                if isinstance(scores, list) and len(scores) == len(self.questions):
                     return scores
                 else:
                     logger.error(f"🐞 Invalid score response: {response}")
@@ -41,7 +41,7 @@ class QueryPool:
 
     def get_naturalness_scores(self):
         prompt = natural_prompt.format(str(self.questions))
-        tot_score = np.zeros(self.pool_size)
+        tot_score = np.zeros(len(self.questions))
         for _ in range(self.repeat_time):
             while True:
                 response = query(prompt)
@@ -57,7 +57,7 @@ class QueryPool:
         for i, (question, query_) in enumerate(zip(self.questions, self.queries)):
             questions_queries += f"#问题{i+1}#\n{question}\n#意图{i+1}#\n{query_}\n\n"
         prompt = correct_prompt.format(questions_queries)
-        tot_score = np.zeros(self.pool_size)
+        tot_score = np.zeros(len(self.questions))
         for _ in range(self.repeat_time):
             while True:
                 response = query(prompt)
@@ -68,8 +68,8 @@ class QueryPool:
         scores = tot_score / self.repeat_time
         return scores
             
-    def add_query(self, js: dict):
-        if len(self.queries) < self.pool_size:
+    def add_query(self, js: dict, last=False):
+        if not last and len(self.queries) < self.pool_size:
             self.questions.append(js['input'])
             self.queries.append(js['query'])
             self.output_js.append(js)
@@ -97,9 +97,11 @@ class QueryPool:
             return output_js
 
 class DataAugmentation:
-    references = []
     rouge = Rouge()
-    dataset = []
+    
+    def __init__(self):
+        self.dataset = []
+        self.references = []
 
     @ staticmethod
     def from_file(file_path: str):
@@ -141,6 +143,7 @@ class DataAugmentation:
     def _insert(self, 
         js: dict,
         pool: QueryPool,
+        last: bool = False,
         rouge_type: Literal['rouge-1', 'rouge-2', 'rouge-l'] = 'rouge-l',
         rouge_metric: Literal['f', 'p', 'r'] ='r',
         min_rouge_score: float = 0.7,
@@ -161,7 +164,7 @@ class DataAugmentation:
                     return []
 
         self.references.append(hypothesis)
-        output_js = pool.add_query(js)
+        output_js = pool.add_query(js, last=last)
         self.dataset.extend(output_js)
         for js in output_js:
             logger.success(f"🎉 Successfully add the user input: {js['input']}")
@@ -176,9 +179,12 @@ class DataAugmentation:
     ) -> list[dict]:
         pool = QueryPool(pool_size=pool_size, min_natural_score=min_natural_score, min_correct_score=min_correct_score)
         dataset = self.dataset.copy()
+        length = len(dataset)
         self.dataset = []
-        for js in dataset:
-            self._insert(js, pool, **kwargs)
+        for i, js in tqdm(enumerate(dataset)):
+            last = (i == length - 1)
+            with tqdm.external_write_mode():
+                self._insert(js, pool, last=last, **kwargs)
         if save_path:
             with open(save_path, 'w', encoding='utf-8') as f:
                 json.dump(self.dataset, f, ensure_ascii=False, indent=4)
@@ -201,23 +207,25 @@ class DataAugmentation:
         f = open(output_path, 'a', encoding='utf-8')
         augment_dataset = []
         for i, js in tqdm(enumerate(self.dataset[last_idx:]), total=len(self.dataset) - last_idx):
-            input_ = js['input']
-            history = []
-            for _ in range(repeat_num):
-                prompt = aug_prompt.format(
-                    input=input_, 
-                    intentions=js['query'], 
-                    history=history, 
-                )
-                aug_input = query(prompt)
-                js['input'] = aug_input
-                output_js = self._insert(js.copy(), pool, **kwargs)
-                if output_js:
-                    for js in output_js:
-                        augment_dataset.append(js)
-                        f.write(json.dumps(js, ensure_ascii=False, indent=indent) + '\n')
-                history.append(aug_input)
-            log.update(i+last_idx)
+            with tqdm.external_write_mode():
+                input_ = js['input']
+                history = []
+                for j in range(repeat_num):
+                    prompt = aug_prompt.format(
+                        input=input_, 
+                        intentions=js['query'], 
+                        history=history, 
+                    )
+                    aug_input = query(prompt)
+                    js['input'] = aug_input
+                    last = (i == len(self.dataset) - 1 and j == repeat_num - 1)
+                    output_js = self._insert(js.copy(), pool, last=last, **kwargs)
+                    if output_js:
+                        for js in output_js:
+                            augment_dataset.append(js)
+                            f.write(json.dumps(js, ensure_ascii=False, indent=indent) + '\n')
+                    history.append(aug_input)
+                log.update(i+last_idx)
         f.close()
         return augment_dataset
 

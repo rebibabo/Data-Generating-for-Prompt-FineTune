@@ -5,3 +5,4 @@ linux-*
 __pycache__
 *.log
 .idea
+results.txt
