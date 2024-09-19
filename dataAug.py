@@ -25,7 +25,7 @@ class QueryPool:
 
     def get_scores(self, response: str):
         try:
-            if response and response[0] == '[' and response[-1] == ']':
+            if response and response[0] == '[' and response[-1] == ']': 
                 scores = eval(response)
                 if isinstance(scores, list) and len(scores) == len(self.questions):
                     if not all(isinstance(score, (int, float)) for score in scores):
