@@ -130,10 +130,13 @@ class FineTune:
                 f.write(f'\twrong dataset size: {length}\n\n')
                 f.flush()
 
-            if score > last_score and score - last_score > aug_threshold:
+            if score > last_score:
                 last_score = score
                 model.save_pretrained(model_save_path)
+                print(f"Model saved at {model_save_path}")
                 self.tokenizer.save_pretrained(model_save_path)
+                if score - last_score <= aug_threshold:
+                    break
             else:
                 break
 

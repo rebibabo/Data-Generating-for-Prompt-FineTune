@@ -19,3 +19,17 @@ Run 1
 	train dataset size: 523
 	wrong dataset size: 119
 
+Run 2
+	precision:  0.8167
+	recall:  0.7886
+	f1_score:  0.7830
+	train dataset size: 796
+	wrong dataset size: 101
+
+Run 3
+	precision:  0.7993
+	recall:  0.8143
+	f1_score:  0.7834
+	train dataset size: 1014
+	wrong dataset size: 113
+

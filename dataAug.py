@@ -28,7 +28,11 @@ class QueryPool:
             if response and response[0] == '[' and response[-1] == ']':
                 scores = eval(response)
                 if isinstance(scores, list) and len(scores) == len(self.questions):
-                    return scores
+                    if not all(isinstance(score, (int, float)) for score in scores):
+                        logger.error("🐞 All items in 'scores' must be numeric values.")
+                        return -1
+                    else:
+                        return scores
                 else:
                     logger.error(f"🐞 Invalid score response: {response}")
                     return -1
