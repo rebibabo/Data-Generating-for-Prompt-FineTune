@@ -4,29 +4,20 @@ from unsloth import FastLanguageModel, is_bfloat16_supported
 from datasets import load_dataset
 from trl import SFTTrainer
 from transformers import TrainingArguments
-from evaluate import Evaluator
 from dataAug import DataAugmentation
 from prompt import lazy_prompt, implicit_prompt
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Any
 import torch
 
-class FineTune(ABC):
-    alpaca_prompt = (
-        "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request."
-        "### Instruction:"
-        "{}"
-        "### Input:"
-        "{}"
-        "### Response:"
-        "{}"
-    )
-
-    def __init__(self, model_name, max_seq_length, dtype, load_in_4bit):
+class ABCFineTune(ABC):
+    def __init__(self, model_name, max_seq_length, dtype, load_in_4bit, Evaluator: Any, pool: Any):
         self.model_name = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit" # See models at https://huggingface.co/unsloth
         self.max_seq_length = 2048 # Choose any! We auto support RoPE Scaling internally!
         self.dtype = None # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
         self.load_in_4bit = True # Use 4bit quantization to reduce memory usage. Can be False.
+        self.Evaluator = Evaluator
+        self.pool = pool
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
             model_name = model_name,
             max_seq_length = max_seq_length,
@@ -54,15 +45,7 @@ class FineTune(ABC):
 
     @abstractmethod
     def formatting_prompts_func(self, examples):
-        instructions  = examples["instruction"]
-        inputs       = examples["input"]
-        outputs      = examples["output"]
-        texts = []
-        for instruction, input, output in zip(instructions, inputs, outputs):
-            # Must add EOS_TOKEN, otherwise your generation will go on forever!
-            text = self.alpaca_prompt.format(instruction, input, output) + self.EOS_TOKEN
-            texts.append(text)
-        return { "text" : texts, }
+        pass
 
     def finetune(self, 
         max_step_each: int = 60,
@@ -117,7 +100,7 @@ class FineTune(ABC):
 
             trainer_stats = trainer.train()
 
-            evaluator = Evaluator(model, self.tokenizer)
+            evaluator = self.Evaluator(model, self.tokenizer)
             result = evaluator.evaluate(test_file=test_dataset_path, wrong_output_path=wrong_dataset_path)
             
             if metric not in result:
@@ -147,34 +130,13 @@ class FineTune(ABC):
                 break
 
             dataAug = DataAugmentation.from_file(wrong_dataset_path)
-            dataAug.augment(lazy_prompt, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
+            dataAug.augment(self.pool, lazy_prompt, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
 
             dataAug = DataAugmentation.from_file(wrong_dataset_path)
-            dataAug.augment(implicit_prompt, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
+            dataAug.augment(self.pool, implicit_prompt, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
 
             dataset = load_dataset('json', data_files=train_dataset_path, split='train')
             train_dataset = dataset.map(self.formatting_prompts_func, batched = True,)
 
             del model
             torch.cuda.empty_cache()
-
-if __name__ == '__main__':
-    fineTune = FineTune(
-        model_name = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit",
-        max_seq_length = 2048,
-        dtype = None,
-        load_in_4bit = True,
-    )
-    fineTune.finetune(
-        max_step_each = 60,
-        learning_rate = 2e-4,
-        train_dataset_path = "dataset/train.jsonl",
-        test_dataset_path = "dataset/test.jsonl",
-        wrong_dataset_path = "dataset/wrong_data.jsonl",
-        max_iter = 10,
-        r = 16,
-        lora_alpha = 16,
-        repeat_num = 2,
-        metric = "f1_score",
-        aug_threshold = 0.02
-    )

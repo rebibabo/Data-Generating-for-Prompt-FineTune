@@ -5,38 +5,20 @@ from unsloth import FastLanguageModel
 from transformers import TextStreamer
 import json
 from tqdm import tqdm
+from utils import alpaca_prompt
 
-alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-### Instruction:
-{}
-
-### Input:
-{}
-
-### Response:
-{}"""
-
-class Evaluator(ABC):
+class ABCEvaluator(ABC):
     def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
         FastLanguageModel.for_inference(self.model) # Enable native 2x faster inference
 
     def inference(self, 
-        instruction: str, 
-        user_input: str, 
+        prompt: str,
         stream: bool = False
     ) -> str:
         
-        inputs = self.tokenizer(
-        [
-            alpaca_prompt.format(
-                instruction, # instruction
-                user_input, # input
-                "", # output - leave this blank for generation!
-            )
-        ], return_tensors = "pt").to("cuda")
+        inputs = self.tokenizer([prompt], return_tensors = "pt").to("cuda")
 
         if stream:
             text_streamer = TextStreamer(self.tokenizer)
@@ -53,6 +35,10 @@ class Evaluator(ABC):
 
     @abstractmethod
     def metric(self, pred, gold) -> dict[str, float]:
+        pass
+
+    @abstractmethod
+    def is_wrong(self, pred, gold) -> bool:
         pass
 
     def evaluate(self, 
@@ -77,7 +63,7 @@ class Evaluator(ABC):
                 if k not in total_metric:
                     total_metric[k] = 0.0
                 total_metric[k] += v
-            if pred!= gold:
+            if self.is_wrong(pred, gold):
                 wrong_data.append(data)
             bar.update(1)
         bar.close()

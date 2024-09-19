@@ -4,6 +4,7 @@ import os
 import json
 from openai import OpenAI
 from loguru import logger
+from abc import ABC, abstractmethod
 import numpy as np
 import random
 import torch
@@ -99,3 +100,13 @@ def load_jsonl(file_path: str) -> list[dict]:
                 data_list.append(json.loads(line))
 
     return data_list
+
+alpaca_prompt = (
+    "Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request."
+    "### Instruction:"
+    "{}"
+    "### Input:"
+    "{}"
+    "### Response:"
+    "{}"
+)
