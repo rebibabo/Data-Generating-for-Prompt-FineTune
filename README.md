@@ -162,3 +162,5 @@ It is noticable that the impact of increasing the rank on training time is subtl
 
 ![image](https://github.com/user-attachments/assets/b80e7f49-2d92-45bc-bb2e-ed649a72817c)
 
+
+![image](https://github.com/user-attachments/assets/02a5c65a-aa9f-40ad-9a3e-c2ef41a9edbb)
