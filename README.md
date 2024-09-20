@@ -152,5 +152,11 @@ The results show that the prompt model achieves a high level of performance afte
 
 ![image](https://github.com/user-attachments/assets/3ef7ed08-a34a-48d8-8f0a-c27e6a3fd2de)
 
+### The effect of the rank
+
+A higher rank allows for more fine-grained adjustments but may approach the computational cost of training the entire model. A lower rank reduces the number of parameters but may not adapt as effectively to new tasks.
+
+It can be observed that the model performance is optimal when the rank reaches around 64. If the rank is increased further, overfitting occurs, leading to a decline in model performance. Therefore, it is considered to use a rank of 64 subsequently.
+
 ![image](https://github.com/user-attachments/assets/b80e7f49-2d92-45bc-bb2e-ed649a72817c)
 
