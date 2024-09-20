@@ -106,7 +106,7 @@ def main():
         pool=pool,
     )
 
-    for max_step_each in range(100, 200, 10):
+    for max_step_each in range(200, 500, 50):
         fineTune.finetune(
             formatting_prompts_func = formatting_prompts_func,
             max_step_each = max_step_each,
