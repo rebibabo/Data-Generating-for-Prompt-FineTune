@@ -5,7 +5,7 @@ from unsloth import FastLanguageModel
 from transformers import TextStreamer
 import json
 from tqdm import tqdm
-from utils import alpaca_prompt
+from typing import Any
 
 class ABCEvaluator(ABC):
     def __init__(self, model, tokenizer):
@@ -34,11 +34,11 @@ class ABCEvaluator(ABC):
         pass
 
     @abstractmethod
-    def metric(self, pred, gold) -> dict[str, float]:
+    def metric(self, pred: Any, gold: Any) -> dict[str, float]:
         pass
 
     @abstractmethod
-    def is_wrong(self, pred, gold) -> bool:
+    def is_wrong(self, pred: Any, gold: Any) -> bool:
         pass
 
     def evaluate(self, 
@@ -55,8 +55,8 @@ class ABCEvaluator(ABC):
                 dataset = json.load(f)
             else:
                 raise ValueError('Unsupported file format')
-        bar = tqdm(total=len(dataset))
-        for data in dataset:
+        
+        for data in tqdm(dataset, desc='Evaluating'):
             pred, gold = self.forward(data)
             metric = self.metric(pred, gold)
             for k, v in metric.items():
@@ -65,8 +65,6 @@ class ABCEvaluator(ABC):
                 total_metric[k] += v
             if self.is_wrong(pred, gold):
                 wrong_data.append(data)
-            bar.update(1)
-        bar.close()
 
         if wrong_output_path:
             with open(wrong_output_path, 'w', encoding='utf-8') as f:

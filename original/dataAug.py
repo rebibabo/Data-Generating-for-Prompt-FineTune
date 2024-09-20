@@ -234,10 +234,10 @@ class DataAugmentation:
         return augment_dataset
 
 if __name__ == '__main__':
-    # dataAug = DataAugmentation.from_file('dataset/seed.json')
-    # dataset = dataAug.cleanse(save_path='dataset/clean_seed.json')
+    # dataAug = DataAugmentation.from_file('../dataset/seed.json')
+    # dataset = dataAug.cleanse(save_path='../dataset/clean_seed.json')
 
-    dataAug = DataAugmentation.from_file('dataset/clean_seed.json')
+    dataAug = DataAugmentation.from_file('../dataset/clean_seed.json')
 
     # lazy_augment = dataAug.augment(
     #     lazy_prompt, 
@@ -247,6 +247,6 @@ if __name__ == '__main__':
 
     implicit_augment = dataAug.augment(
         implicit_prompt, 
-        output_path='dataset/implicit_augment.jsonl',
+        output_path='../dataset/implicit_augment.jsonl',
         from_log=False
     )

@@ -5,17 +5,22 @@ from datasets import load_dataset
 from trl import SFTTrainer
 from transformers import TrainingArguments
 from dataAug import DataAugmentation
-from prompt import lazy_prompt, implicit_prompt
-from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Callable
 import torch
 
-class ABCFineTune(ABC):
-    def __init__(self, model_name, max_seq_length, dtype, load_in_4bit, Evaluator: Any, pool: Any):
-        self.model_name = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit" # See models at https://huggingface.co/unsloth
-        self.max_seq_length = 2048 # Choose any! We auto support RoPE Scaling internally!
-        self.dtype = None # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
-        self.load_in_4bit = True # Use 4bit quantization to reduce memory usage. Can be False.
+class FineTune:
+    def __init__(self, 
+        model_name: str = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit",      # See models at https://huggingface.co/unsloth
+        max_seq_length: int = 2048,                 # Choose any! We auto support RoPE Scaling internally!
+        dtype = None,                               # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
+        load_in_4bit: bool = True,                  # Use 4bit quantization to reduce memory usage. Can be False.
+        Evaluator: Any = None, 
+        pool: Any = None
+    ):
+        self.model_name = model_name
+        self.max_seq_length = max_seq_length 
+        self.dtype = dtype 
+        self.load_in_4bit = load_in_4bit 
         self.Evaluator = Evaluator
         self.pool = pool
         self.model, self.tokenizer = FastLanguageModel.from_pretrained(
@@ -43,11 +48,8 @@ class ABCFineTune(ABC):
         )
         return model
 
-    @abstractmethod
-    def formatting_prompts_func(self, examples):
-        pass
-
     def finetune(self, 
+        formatting_prompts_func: Callable,
         max_step_each: int = 60,
         learning_rate: float = 2e-4,
         train_dataset_path: str = "dataset/train.jsonl",
@@ -58,7 +60,8 @@ class ABCFineTune(ABC):
         r: int = 16,
         lora_alpha: int = 16,
         repeat_num: int = 3,
-        metric: str = "",
+        aug_funcs: list[Callable] = [],
+        metric: str = "f1_score",
         aug_threshold: float = 0.02
     ):
 
@@ -79,7 +82,7 @@ class ABCFineTune(ABC):
         )
 
         dataset = load_dataset('json', data_files=train_dataset_path, split='train')
-        train_dataset = dataset.map(self.formatting_prompts_func, batched = True,)
+        train_dataset = dataset.map(formatting_prompts_func, batched = True, fn_kwargs={"EOS": self.EOS_TOKEN})
 
         last_score = 0
 
@@ -101,8 +104,11 @@ class ABCFineTune(ABC):
             trainer_stats = trainer.train()
 
             evaluator = self.Evaluator(model, self.tokenizer)
-            result = evaluator.evaluate(test_file=test_dataset_path, wrong_output_path=wrong_dataset_path)
+            result = evaluator.evaluate(test_file_path=test_dataset_path, wrong_output_path=wrong_dataset_path)
             
+            for key, value in result.items():
+                print(f"{key}: {value: 0.4f}")
+
             if metric not in result:
                 print(f"Metric {metric} not found in result. Available metrics: {result.keys()}")
                 return
@@ -120,23 +126,24 @@ class ABCFineTune(ABC):
                 f.flush()
 
             if score > last_score:
-                last_score = score
                 model.save_pretrained(model_save_path)
                 print(f"Model saved at {model_save_path}")
                 self.tokenizer.save_pretrained(model_save_path)
                 if score - last_score <= aug_threshold:
                     break
+                last_score = score
             else:
                 break
 
-            dataAug = DataAugmentation.from_file(wrong_dataset_path)
-            dataAug.augment(self.pool, lazy_prompt, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
+            if not aug_funcs:
+                break
 
-            dataAug = DataAugmentation.from_file(wrong_dataset_path)
-            dataAug.augment(self.pool, implicit_prompt, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
+            for aug_func in aug_funcs:
+                dataAug = DataAugmentation.from_file(wrong_dataset_path)
+                dataAug.augment(pool=self.pool, prompt_func=aug_func, output_path=train_dataset_path, from_log=False, repeat_num=repeat_num)
 
             dataset = load_dataset('json', data_files=train_dataset_path, split='train')
-            train_dataset = dataset.map(self.formatting_prompts_func, batched = True,)
+            train_dataset = dataset.map(formatting_prompts_func, batched = True, fn_kwargs={"EOS": self.EOS_TOKEN})
 
             del model
             torch.cuda.empty_cache()

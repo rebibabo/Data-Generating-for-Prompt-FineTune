@@ -13,7 +13,7 @@ def generate_seed(initial_size=300, max_query_size=2, min_rel_score=7):
     )
     dataset = []
     query_set = set()
-    df = pd.read_excel('dataset/活动映射表.xlsx')
+    df = pd.read_excel('../dataset/活动映射表.xlsx')
     mapping = {k: v for k, v in zip(df['query'], df['name'])}
     queries = list(mapping.keys())
     instruction = instruction.format(intentions=str(list(set(mapping.values()))))
@@ -44,7 +44,7 @@ def generate_seed(initial_size=300, max_query_size=2, min_rel_score=7):
         dataset.append(js)
         logger.success(f"🎉 {len(dataset)} / {initial_size} {question} => {random_queries}")
 
-        with open('dataset/seed.json', 'w', encoding='utf-8') as f:
+        with open('../dataset/seed.json', 'w', encoding='utf-8') as f:
             json.dump(dataset, f, ensure_ascii=False, indent=4)
 
 if __name__ == '__main__':

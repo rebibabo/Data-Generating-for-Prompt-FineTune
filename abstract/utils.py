@@ -4,13 +4,15 @@ import os
 import json
 from openai import OpenAI
 from loguru import logger
-from abc import ABC, abstractmethod
 import numpy as np
 import random
 import torch
 
+os.makedirs('../logs', exist_ok=True)
+import datetime
+now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 logger.remove(0)
-logger.add("data_aug.log", format="<level>{level}</level> | <level>{message}</level>", rotation="10 MB")
+logger.add(f"../logs/{now}.log", format="<level>{level}</level> | <level>{message}</level>", rotation="10 MB")
 
 def set_seed(seed: int):
     random.seed(seed)

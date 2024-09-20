@@ -70,7 +70,8 @@ class DataAugmentation:
 
         if len(user_input) > max_length:
             logger.warning(f"🤮 The length of user input is too long")
-            return []
+            if not last:
+                return []
 
         hypothesis = ' '.join(jieba.cut(user_input))
         if min_rouge_score > 0:
@@ -79,7 +80,8 @@ class DataAugmentation:
                 score = scores[0][rouge_type][rouge_metric]
                 if score > min_rouge_score:
                     logger.warning(f"🤢 repetitve user input: {user_input} => {score:.4f}")
-                    return []
+                    if not last:
+                        return []
 
         self.references.append(hypothesis)
         output_js = pool.add_query(js, last=last)
@@ -96,7 +98,7 @@ class DataAugmentation:
         dataset = self.dataset.copy()
         length = len(dataset)
         self.dataset = []
-        for i, js in enumerate(dataset):
+        for i, js in tqdm(enumerate(dataset), total=length):
             last = (i == length - 1)
             self._insert(js, pool, last=last, **kwargs)
         if save_path:
@@ -117,20 +119,19 @@ class DataAugmentation:
         last_idx = log.last_idx if from_log else 0
         f = open(output_path, 'a', encoding='utf-8')
         augment_dataset = []
-        for i, js in enumerate(self.dataset[last_idx:]):
-            with tqdm.external_write_mode():
-                history = []
-                for j in range(repeat_num):
-                    prompt = prompt_func(js, history)
-                    aug_input = query(prompt)
-                    js[self.key_name] = aug_input
-                    last = (i == len(self.dataset) - 1 and j == repeat_num - 1)
-                    output_js = self._insert(js.copy(), pool, last=last, **kwargs)
-                    if output_js:
-                        for js in output_js:
-                            augment_dataset.append(js)
-                            f.write(json.dumps(js, ensure_ascii=False, indent=indent) + '\n')
-                    history.append(aug_input)
-                log.update(i+last_idx)
+        for i, js in tqdm(enumerate(self.dataset[last_idx:]), total=len(self.dataset)-last_idx):
+            history = []
+            for j in range(repeat_num):
+                prompt = prompt_func(js, history)
+                aug_input = query(prompt)
+                js[self.key_name] = aug_input
+                last = (i == len(self.dataset) - 1 and j == repeat_num - 1)
+                output_js = self._insert(js.copy(), pool, last=last, **kwargs)
+                if output_js:
+                    for js in output_js:
+                        augment_dataset.append(js)
+                        f.write(json.dumps(js, ensure_ascii=False, indent=indent) + '\n')
+                history.append(aug_input)
+            log.update(i+last_idx)
         f.close()
         return augment_dataset

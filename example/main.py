@@ -2,9 +2,8 @@ import sys
 import time
 sys.path.append('..')
 
-from abstract.dataAug import DataAugmentation
 from abstract.queryPool import QueryPool
-from abstract.finetune import ABCFineTune
+from abstract.finetune import FineTune
 from abstract.evaluate import ABCEvaluator
 from prompt import natural_prompt, correct_prompt, lazy_prompt, implicit_prompt, alpaca_prompt
 
@@ -36,20 +35,22 @@ class Evaluator(ABCEvaluator):
         gold = data['output']
         instruction = data['instruction']
         input_ = data['input']
+        prompt = alpaca_prompt.format(
+            instruction,    # instruction
+            input_,         # input
+            "",             # output - leave this blank for generation!
+        )
         while True:
+            output = self.inference(prompt).split('### Response:')[-1].replace('\n', '').strip()
             try:
-                prompt = alpaca_prompt.format(
-                    instruction,    # instruction
-                    input_,         # input
-                    "",             # output - leave this blank for generation!
-                )
-                output = eval(self.inference(prompt).split('### Response:\n')[-1])
+                output = eval(output)
                 break
             except:
+                print(f"Invalid output: {output}. Retrying...")
                 time.sleep(1)
         return output, gold
 
-    def metric(self, pred: str, gold: str) -> dict[str, float]:
+    def metric(self, pred, gold) -> dict[str, float]:
         TP = len(set(pred) & set(gold))
         P = len(pred)
         R = len(gold)
@@ -61,25 +62,21 @@ class Evaluator(ABCEvaluator):
     def is_wrong(self, pred, gold):
         return pred != gold
 
-class FineTune(ABCFineTune):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def formatting_prompts_func(self, examples):
-        instructions  = examples["instruction"]
-        inputs       = examples["input"]
-        outputs      = examples["output"]
-        texts = []
-        for instruction, input, output in zip(instructions, inputs, outputs):
-            # Must add EOS_TOKEN, otherwise your generation will go on forever!
-            text = alpaca_prompt.format(instruction, input, output) + self.EOS_TOKEN
-            texts.append(text)
-        return { "text" : texts, }
+def formatting_prompts_func(examples, EOS):
+    instructions = examples["instruction"]
+    inputs       = examples["input"]
+    outputs      = examples["output"]
+    texts = []
+    for instruction, input, output in zip(instructions, inputs, outputs):
+        # Must add EOS_TOKEN, otherwise your generation will go on forever!
+        text = alpaca_prompt.format(instruction, input, output) + EOS
+        texts.append(text)
+    return { "text" : texts, }
 
 def lazy_func(js: dict, history: list[str]) -> str:
     prompt = lazy_prompt.format(
         input=js['input'], 
-        intentions=js['input'], 
+        intentions=js['query'], 
         history=history, 
     )
     return prompt
@@ -87,33 +84,13 @@ def lazy_func(js: dict, history: list[str]) -> str:
 def implicit_func(js: dict, history: list[str]) -> str:
     prompt = implicit_prompt.format(
         input=js['input'], 
-        intentions=js['input'], 
+        intentions=js['query'], 
         history=history, 
     )
     return prompt
 
 def main():
     pool = Pool(pool_size=10, repeat_time=2)
-    # dataAug = DataAugmentation.from_file('../dataset/seed.json', ref=False)
-    # dataAug.cleanse(pool, save_path='../dataset/clean_seed.json')
-
-    # dataAug = DataAugmentation.from_file('../dataset/clean_seed.json')
-
-    # lazy_augment = dataAug.augment(
-    #     pool=pool,
-    #     prompt_func=lazy_func,
-    #     output_path='../dataset/lazy_augment.jsonl',
-    #     from_log=False,
-    #     indent=4
-    # )
-
-    # implicit_augment = dataAug.augment(
-    #     pool=pool,
-    #     prompt_func=implicit_func,
-    #     output_path='../dataset/implicit_augment.jsonl',
-    #     from_log=False,
-    #     indent=4
-    # )
 
     fineTune = FineTune(
         model_name = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit",
@@ -125,17 +102,20 @@ def main():
     )
 
     fineTune.finetune(
+        formatting_prompts_func = formatting_prompts_func,
         max_step_each = 60,
         learning_rate = 2e-4,
-        train_dataset_path = "dataset/train.jsonl",
-        test_dataset_path = "dataset/test.jsonl",
-        wrong_dataset_path = "dataset/wrong_data.jsonl",
+        train_dataset_path = "../dataset/train.jsonl",
+        test_dataset_path = "../dataset/test.jsonl",
+        wrong_dataset_path = "../dataset/wrong_data.jsonl",
+        model_save_path="../lora_model",
         max_iter = 10,
         r = 16,
         lora_alpha = 16,
         repeat_num = 2,
+        aug_funcs=[lazy_func, implicit_func],
         metric = "f1_score",
-        aug_threshold = 0.02
+        aug_threshold = 0.02,
     )
 
 if __name__ == '__main__':
