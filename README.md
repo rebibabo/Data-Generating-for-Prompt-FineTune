@@ -156,13 +156,13 @@ The results show that the prompt model achieves a high level of performance afte
 
 The formula of the LoRA (Low-Rank Adaptation) is:
 
-$W = W_0 + \alpha \cdot A \times B$
+$$W = W_0 + \alpha \cdot A \times B$$
 
-where $W_0$ is the original model weights, $A$ is the low-rank matrix, and $B$ is the prompt matrix.
+where $$W_0$$ is the original model weights, $$A$$ is the low-rank matrix, and $$B$$ is the prompt matrix.
 
-The shape of $A$ and $B$ are determined by the rank parameter. A: $m \times r$, B: $r \times n$, W: $m \times n$.
+The shape of $$A$$ and $$B$$ are determined by the rank parameter. A: $$m \times r$$, B: $$r \times n$$, W: $$m \times n$$.
 
-The PEFT model will lock the weights of the original model weight $W_0$, and only update the matrix $A$ and $B$.
+The PEFT model will lock the weights of the original model weight $$W_0$$, and only update the matrix $$A$$ and $$B$$.
 
 This can substantially reduce the computational cost of training the model, as only a small number of parameters need to be updated.
 
