@@ -1,5 +1,7 @@
 ## Data Augmentation
 
+![image](https://github.com/user-attachments/assets/98830d3f-6440-476a-94cf-8d7e77963208)
+
 Scenario: Generate question + intention pairs based on the activity mapping table.xlsx
 
 See the code in the "original" directory
@@ -101,3 +103,5 @@ See the code in the "original" directory
 
     Lastly, we merge the train dataset and the validation set into the final dataset, and use it for training the ultimate model.
 
+
+![image](https://github.com/user-attachments/assets/3ef7ed08-a34a-48d8-8f0a-c27e6a3fd2de)
