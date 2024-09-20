@@ -9,6 +9,11 @@ from typing import Any
 
 class ABCEvaluator(ABC):
     def __init__(self, model, tokenizer):
+        '''
+        Parameters:
+            :model: Hugging Face Transformers model that has been fastened by unsloth
+            :tokenizer: Hugging Face Transformers tokenizer
+        '''
         self.model = model
         self.tokenizer = tokenizer
         FastLanguageModel.for_inference(self.model) # Enable native 2x faster inference
@@ -17,7 +22,19 @@ class ABCEvaluator(ABC):
         prompt: str,
         stream: bool = False
     ) -> str:
-        
+        '''
+        Usage:
+            Input the prompt and get the generated output.
+            If stream is True, the model will generate the output in a streaming way.
+            Otherwise, the model will generate the output in a non-streaming way.
+
+        Parameters:
+            :prompt: The input prompt
+            :stream: Whether to use streaming inference or not. Default is False.
+
+        Returns:
+            The generated output.
+        '''
         inputs = self.tokenizer([prompt], return_tensors = "pt").to("cuda")
 
         if stream:
@@ -31,20 +48,106 @@ class ABCEvaluator(ABC):
 
     @abstractmethod
     def forward(self, data: dict) -> tuple[str, str]:
+        '''
+        Usage:
+            This is an abstract method that needs to be implemented by the child class.
+            It takes in a data dictionary and returns a tuple of predicted output and gold output.
+
+        Parameters:
+            :data: A data dictionary containing the input prompt and the gold output.
+
+        Returns:
+            A tuple of predicted output and gold output.
+
+        Example:
+            def forward(self, data: dict) -> tuple[str, str]:
+                gold = data['output']
+                instruction = data['instruction']
+                input_ = data['input']
+                prompt = alpaca_prompt.format(
+                    instruction,    # instruction
+                    input_,         # input
+                    "",             # output - leave this blank for generation!
+                )
+                output = self.inference(prompt)
+                return output, gold
+        '''
         pass
 
     @abstractmethod
     def metric(self, pred: Any, gold: Any) -> dict[str, float]:
+        '''
+        Usage:
+            This is an abstract method that needs to be implemented by the child class.
+            It takes in a predicted output and gold output and returns a dictionary of metrics.
+
+        Parameters:
+            :pred: The predicted output. It can be str, list of str, or any other type.
+            :gold: The gold output. It can be str, list of str, or any other type.
+
+        Returns:
+            A dictionary of metrics.
+            Example:
+                {'bleu": 0.9, 'ppl': 1.2}
+                {'p': 0.9, 'r': 0.8, 'f1': 0.85}
+
+        Example:
+            def metric(self, pred, gold) -> dict[str, float]:
+                TP = len(set(pred) & set(gold))
+                P = len(pred)
+                R = len(gold)
+                precision = TP / P if P > 0 else 0
+                recall = TP / R if R > 0 else 0
+                f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+                return {'precision': precision,'recall': recall, 'f1_score': f1_score}
+        '''
         pass
 
     @abstractmethod
     def is_wrong(self, pred: Any, gold: Any) -> bool:
+        '''
+        Usage:
+            This is an abstract method that needs to be implemented by the child class.
+            It takes in a predicted output and gold output and returns a boolean value 
+            indicating whether the prediction is wrong or not.
+
+        Parameters:
+            :pred: The predicted output. It can be str, list of str, or any other type.
+            :gold: The gold output. It can be str, list of str, or any other type.
+
+        Returns:
+            A boolean value indicating whether the prediction is wrong or not.
+            Notice:
+                If the wrong condition is too easy to be satisfied, it will generate too many wrong predictions.
+                Thus it will take a long time to augment the wrong data.
+                So it is recommended to use a more complex wrong condition like setting a threshold.
+
+        Example:
+            def is_wrong(self, pred: str, gold: str) -> bool:
+                return pred.lower() != gold.lower()
+
+            A better wrong condition can be:
+            def is_wrong(self, pred: str, gold: str) -> bool:
+                return similarity(pred, gold) < 0.7
+        '''
         pass
 
     def evaluate(self, 
         test_file_path: str,
         wrong_output_path: str = '',
     ) -> dict[str, float]:
+        '''
+        Usage:
+            This method evaluates the model on a test file and returns a dictionary of metrics.
+            If the wrong_output_path is provided, it will save the wrong predictions to the file.
+
+        Parameters:
+            :test_file_path: The path to the test file.
+            :wrong_output_path: The path to the file to save the wrong predictions. Default is ''.
+
+        Returns:
+            A dictionary of metrics.
+        '''
         wrong_data = []
         total_metric = {}
         with open(test_file_path, 'r') as f:

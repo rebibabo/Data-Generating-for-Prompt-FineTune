@@ -12,8 +12,8 @@ class Pool(QueryPool):
         super().__init__(*args, **kwargs)
 
     def get_score_prompts(self) -> dict[str, str]:
-        questions = [x['input'] for x in self.output_js]
-        queries = [x['query'] for x in self.output_js]
+        questions = [x['input'] for x in self.input_js]
+        queries = [x['query'] for x in self.input_js]
         _natural_prompt = natural_prompt.format(str(questions))
         questions_queries = ''
         for i, (question, query_) in enumerate(zip(questions, queries)):
@@ -40,14 +40,19 @@ class Evaluator(ABCEvaluator):
             input_,         # input
             "",             # output - leave this blank for generation!
         )
+        try_num = 0
         while True:
             output = self.inference(prompt).split('### Response:')[-1].replace('\n', '').strip()
             try:
                 output = eval(output)
                 break
             except:
-                print(f"Invalid output: {output}. Retrying...")
+                try_num += 1
+                print(f"Invalid output: {output}. Retrying {try_num}...")
                 time.sleep(1)
+            if try_num >= 3:
+                print("Failed to generate output. Please check the input and query.")
+                return [], gold
         return output, gold
 
     def metric(self, pred, gold) -> dict[str, float]:
@@ -101,22 +106,23 @@ def main():
         pool=pool,
     )
 
-    fineTune.finetune(
-        formatting_prompts_func = formatting_prompts_func,
-        max_step_each = 60,
-        learning_rate = 2e-4,
-        train_dataset_path = "../dataset/train.jsonl",
-        test_dataset_path = "../dataset/test.jsonl",
-        wrong_dataset_path = "../dataset/wrong_data.jsonl",
-        model_save_path="../lora_model",
-        max_iter = 10,
-        r = 16,
-        lora_alpha = 16,
-        repeat_num = 2,
-        aug_funcs=[lazy_func, implicit_func],
-        metric = "f1_score",
-        aug_threshold = 0.02,
-    )
+    for max_step_each in range(100, 200, 10):
+        fineTune.finetune(
+            formatting_prompts_func = formatting_prompts_func,
+            max_step_each = max_step_each,
+            learning_rate = 2e-4,
+            train_dataset_path = "../dataset/train.jsonl",
+            test_dataset_path = "../dataset/test.jsonl",
+            wrong_dataset_path = "../dataset/wrong_data.jsonl",
+            model_save_path="../lora_model",
+            max_iter = 10,
+            r = 16,
+            lora_alpha = 16,
+            repeat_num = 2,
+            # aug_funcs=[lazy_func, implicit_func],
+            metric = "f1_score",
+            aug_threshold = 0.02,
+        )
 
 if __name__ == '__main__':
     main()
