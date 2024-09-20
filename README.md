@@ -104,7 +104,7 @@ See the code in the "original" directory
     Lastly, we merge the train dataset and the validation set into the final dataset, and use it for training the ultimate model.
 
 ## Introduction to the project
-We propose this pipeline in the "abstract" directory, which contains 5 files:
+We propose this pipeline in the "abstract" directory, which contains 4 main files:
 - dataAug.py
 
     We define the DataAugmentation class, which can clean the seed dataset according to the prompt rules and the similarity betwwen each query, and generate the augmented dataset.
