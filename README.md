@@ -1,4 +1,4 @@
-## Data Augmentation
+## Data Augmentation Pipeline Introduction
 
 ![image](https://github.com/user-attachments/assets/98830d3f-6440-476a-94cf-8d7e77963208)
 
@@ -103,5 +103,51 @@ See the code in the "original" directory
 
     Lastly, we merge the train dataset and the validation set into the final dataset, and use it for training the ultimate model.
 
+## Introduction to the project
+We propose this pipeline in the "abstract" directory, which contains 5 files:
+- dataAug.py
+
+    We define the DataAugmentation class, which can clean the seed dataset according to the prompt rules and the similarity betwwen each query, and generate the augmented dataset.
+
+- queryPool.py
+
+    We define the QueryPool class, which is an abstract class for query pool. It is used to score a batch(pool_size) of user inputs in an AI-powered way.
+    When the pool is full, it will calculate the scores of all the inputs, and return the output_js that satisfy all the score thresholds.
+    
+    There are 3 abstract methods that need to be implemented:
+    - get_score_prompts
+    - get_score_thresholds
+    - get_prompt_key_name
+
+    See more details in the file.
+
+- finetune.py
+
+    We define the FineTune class, which is used to fine-tune the prompt model using the train dataset from scratch, and use the validation set to evaluate the performance of the prompt model.
+    During each iteration , it will augment the wrong predictions using a list of augmentation functions.
+    Finally, Saves the best model based on a metric.
+
+- evaluate.py
+
+    We define the Evaluate class, which is an abstract class for evaluation. It is used to evaluate the performance of the prompt model.
+    There are 3 abstract methods that need to be implemented:
+    - forward
+    - metric
+    - is_wrong
+    See more details in the file.
+
+We implement the pipeline in the "example" directory, see more details in the files.
+
+## Experiments
+
+### The effect of the number of iterations
+
+We fine-tune the prompt model using the 1014 train dataset from scratch, and use the 175 clean seed dataset to evaluate the performance of the prompt model.
+
+The model should output the intention of the query using a string list, and we evaluate the performance of the model using the precision, recall, and F1-score metrics.
+
+We fine-tune the prompt model using the default parameters and evaluate the performance of the model for different number of iterations.
+
+The results show that the prompt model achieves a high level of performance after 160 iterations.
 
 ![image](https://github.com/user-attachments/assets/3ef7ed08-a34a-48d8-8f0a-c27e6a3fd2de)
