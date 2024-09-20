@@ -136,7 +136,9 @@ We propose this pipeline in the "abstract" directory, which contains 5 files:
     - is_wrong
     See more details in the file.
 
-We implement the pipeline in the "example" directory, see more details in the files.
+We implement the pipeline in the "example" directory
+
+See more details in the files.
 
 ## Experiments
 
