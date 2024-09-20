@@ -158,5 +158,7 @@ A higher rank allows for more fine-grained adjustments but may approach the comp
 
 It can be observed that the model performance is optimal when the rank reaches around 64. If the rank is increased further, overfitting occurs, leading to a decline in model performance. Therefore, it is considered to use a rank of 64 subsequently.
 
+It is noticable that the impact of increasing the rank on training time is minimal.
+
 ![image](https://github.com/user-attachments/assets/b80e7f49-2d92-45bc-bb2e-ed649a72817c)
 
