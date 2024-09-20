@@ -1,0 +1,166 @@
+10 
+	precision:  0.5520
+	recall:  0.5971
+	f1_score:  0.5261
+	train dataset size: 1014
+	wrong dataset size: 146
+
+20
+	precision:  0.5622
+	recall:  0.6867
+	f1_score:  0.5779
+	train dataset size: 1014
+	wrong dataset size: 149
+
+30
+	precision:  0.7426
+	recall:  0.6971
+	f1_score:  0.6903
+	train dataset size: 1014
+	wrong dataset size: 124
+
+40
+	precision:  0.6446
+	recall:  0.7581
+	f1_score:  0.6608
+	train dataset size: 1014
+	wrong dataset size: 141
+
+50
+	precision:  0.7912
+	recall:  0.7714
+	f1_score:  0.7551
+	train dataset size: 1014
+	wrong dataset size: 110
+
+60
+	precision:  0.7633
+	recall:  0.7943
+	f1_score:  0.7541
+	train dataset size: 1014
+	wrong dataset size: 121
+
+70
+	precision:  0.8110
+	recall:  0.8124
+	f1_score:  0.7891
+	train dataset size: 1014
+	wrong dataset size: 107
+
+80
+	precision:  0.8290
+	recall:  0.8390
+	f1_score:  0.8177
+	train dataset size: 1014
+	wrong dataset size: 99
+
+90
+	precision:  0.8791
+	recall:  0.8867
+	f1_score:  0.8700
+	train dataset size: 1014
+	wrong dataset size: 74
+
+100
+	precision:  0.9062
+	recall:  0.8905
+	f1_score:  0.8880
+	train dataset size: 1014
+	wrong dataset size: 67
+
+110
+	precision:  0.9162
+	recall:  0.8981
+	f1_score:  0.8964
+	train dataset size: 1014
+	wrong dataset size: 61
+
+120
+	precision:  0.8652
+	recall:  0.8905
+	f1_score:  0.8659
+	train dataset size: 1014
+	wrong dataset size: 65
+
+130
+	precision:  0.8776
+	recall:  0.8914
+	f1_score:  0.8690
+	train dataset size: 1014
+	wrong dataset size: 67
+
+140
+	precision:  0.8873
+	recall:  0.9162
+	f1_score:  0.8897
+	train dataset size: 1014
+	wrong dataset size: 64
+
+150
+	precision:  0.9290
+	recall:  0.9552
+	f1_score:  0.9337
+	train dataset size: 1014
+	wrong dataset size: 54
+
+160
+	precision:  0.9562
+	recall:  0.9486
+	f1_score:  0.9447
+	train dataset size: 1014
+	wrong dataset size: 40
+
+170
+	precision:  0.9495
+	recall:  0.9495
+	f1_score:  0.9416
+	train dataset size: 1014
+	wrong dataset size: 37
+
+180
+	precision:  0.9538
+	recall:  0.9590
+	f1_score:  0.9481
+	train dataset size: 1014
+	wrong dataset size: 35
+
+190
+	precision:  0.9210
+	recall:  0.9448
+	f1_score:  0.9250
+	train dataset size: 1014
+	wrong dataset size: 39
+
+200
+	precision:  0.9743
+	recall:  0.9714
+	f1_score:  0.9678
+	train dataset size: 1014
+	wrong dataset size: 27
+
+250
+	precision:  0.9752
+	recall:  0.9619
+	f1_score:  0.9642
+	train dataset size: 1014
+	wrong dataset size: 27
+300
+	precision:  0.9819
+	recall:  0.9905
+	f1_score:  0.9844
+	train dataset size: 1014
+	wrong dataset size: 12
+
+350
+	precision:  0.9857
+	recall:  0.9943
+	f1_score:  0.9888
+	train dataset size: 1014
+	wrong dataset size: 10
+
+400
+	precision:  0.9857
+	recall:  0.9905
+	f1_score:  0.9870
+	train dataset size: 1014
+	wrong dataset size: 8

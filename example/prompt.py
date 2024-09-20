@@ -23,6 +23,7 @@ Your Objective is to rewrite a #Given Prompt# into an easier one to imitate a la
 removing all the sentences that does not contain the key words of #intentions#.
 The #Rewritten Prompt# MUST be natural and not too verbose.
 Also, the #Rewritten Prompt# MUST be different from the #Given Prompt# and #Previous Generated Prompts#.
+#Rewritten Prompt# should be written in Chinese.
 
 Example:
 #Given Prompt#: 宠粉日是什么时候，有没有什么优惠活动呢？
@@ -45,6 +46,7 @@ Your objective is to rewrite a #Given Prompt# into a more implicit version.
 Implicit means that the prompt does not necessarily contain the key words in #intentions# but still contains the same intentions.
 But the #Rewritten Prompt# MUST be natural and not too verbose to imitate a real user input.
 Also, the #Rewritten Prompt# MUST be different from the #Given Prompt# and #Previous Generated Prompts#.
+#Rewritten Prompt# should be written in Chinese.
 
 Example:
 #Given Prompt#: 我怎么邀请我的朋友一起攒云朵？

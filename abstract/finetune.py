@@ -19,7 +19,7 @@ class FineTune:
     ):
         '''
         Parameters:
-            :model_name: See models at https://huggingface.co/models
+            :model_name: See models at https://huggingface.co/unsloth
             :max_seq_length: Choose any! We auto support RoPE Scaling internally!
             :dtype: None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
             :load_in_4bit: Use 4bit quantization to reduce memory usage. Can be False.
@@ -85,7 +85,8 @@ class FineTune:
         repeat_num: int = 3,
         aug_funcs: list[Callable] = [],
         metric: str = "f1_score",
-        aug_threshold: float = 0.02
+        aug_threshold: float = 0.02,
+        output_info: str = ''
     ):
         '''
         Usage:
@@ -139,6 +140,7 @@ class FineTune:
                         return prompt
             :metric: The metric to use for evaluation.
             :aug_threshold: The threshold for augmentation. If the score does not improve by this amount, stop augmenting.
+            :output_info: A string to output at the beginning of the results.txt file.
 
         Returns:
             Save the best model according to the metric to the model_save_path.
@@ -198,7 +200,10 @@ class FineTune:
                 length = len(f.readlines())
 
             with open('results.txt', 'a') as f:
-                f.write(f'Run {i+1}\n')
+                if output_info:
+                    f.write(f'{output_info}\n')
+                else:
+                    f.write(f'Run {i+1}\n')
                 for key, value in result.items():
                     f.write(f'\t{key}: {value: 0.4f}\n')
                 f.write(f'\ttrain dataset size: {len(train_dataset)}\n')

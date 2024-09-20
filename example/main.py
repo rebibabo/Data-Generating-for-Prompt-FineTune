@@ -95,34 +95,49 @@ def implicit_func(js: dict, history: list[str]) -> str:
     return prompt
 
 def main():
+    '''
+    unsloth/Qwen2.5-7B-bnb-4bit
+    unsloth/Qwen2.5-7B-Instruct-bnb-4bit    
+    unsloth/mistral-7b-v0.3-bnb-4bit    
+    unsloth/mistral-7b-instruct-v0.3    #
+    unsloth/mistral-7b-instruct-v0.3-bnb-4bit
+    unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit
+    '''
     pool = Pool(pool_size=10, repeat_time=2)
 
+    models = [
+        "unsloth/Qwen2.5-7B-Instruct-bnb-4bit",
+        "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit"
+    ]
+
     fineTune = FineTune(
-        model_name = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit",
+        model_name = "unsloth/Meta-Llama-3.1-8B-Instruct-bnb-4bit",
         max_seq_length = 2048,
         dtype = None,
         load_in_4bit = True,
         Evaluator=Evaluator,
         pool=pool,
     )
+    
+    r = 64
 
-    for max_step_each in range(200, 500, 50):
-        fineTune.finetune(
-            formatting_prompts_func = formatting_prompts_func,
-            max_step_each = max_step_each,
-            learning_rate = 2e-4,
-            train_dataset_path = "../dataset/train.jsonl",
-            test_dataset_path = "../dataset/test.jsonl",
-            wrong_dataset_path = "../dataset/wrong_data.jsonl",
-            model_save_path="../lora_model",
-            max_iter = 10,
-            r = 16,
-            lora_alpha = 16,
-            repeat_num = 2,
-            # aug_funcs=[lazy_func, implicit_func],
-            metric = "f1_score",
-            aug_threshold = 0.02,
-        )
+    fineTune.finetune(
+        formatting_prompts_func = formatting_prompts_func,
+        max_step_each = 160,
+        learning_rate = 2e-4,
+        train_dataset_path = "../dataset/train.jsonl",
+        test_dataset_path = "../dataset/test.jsonl",
+        wrong_dataset_path = "../dataset/wrong_data.jsonl",
+        model_save_path="../lora_model",
+        max_iter = 10,
+        r = r,
+        lora_alpha = r,
+        repeat_num = 3,
+        # aug_funcs=[lazy_func, implicit_func],
+        metric = "f1_score",
+        aug_threshold = 0.001,
+        output_info=f'model: {model}'
+    )
 
 if __name__ == '__main__':
     main()

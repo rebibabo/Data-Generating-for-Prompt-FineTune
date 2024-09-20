@@ -246,7 +246,9 @@ class DataAugmentation:
         last_idx = log.last_idx if from_log else 0
         f = open(output_path, 'a', encoding='utf-8')
         augment_dataset = []
-        for i, js in tqdm(enumerate(self.dataset[last_idx:]), total=len(self.dataset)-last_idx):
+        for i, js in tqdm(enumerate(self.dataset[last_idx:]), 
+                            total=len(self.dataset)-last_idx,
+                            desc=f'Augmenting by {prompt_func.__name__}'):
             history = []
             for j in range(repeat_num):
                 prompt = prompt_func(js, history)
