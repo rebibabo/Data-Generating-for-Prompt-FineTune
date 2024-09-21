@@ -189,9 +189,26 @@ We can see that the model performance is optimal when the alpha is around 1.
 ![image](https://github.com/user-attachments/assets/02a5c65a-aa9f-40ad-9a3e-c2ef41a9edbb)
 
 ### The performance of data augmentation
+
+We fine-tune the Qwen2.5 model to varify the effectiveness of data augmentation.
+
+The model is fine-tuned using the 1014 train dataset from scratch, and use the 175 clean seed dataset to evaluate the performance of the model.
+
+Each augmentation iteration will generate a new set of augmented data from the wrong predictions, and append it to the train dataset, then fine-tune the model using the new train dataset from scratch.
+
+After 1 augmentation iteration, the model achieves a higher level of performance, with a f1-score from 0.875 to 0.907.
+But after 2 augmentation iterations, the model performance decreases, with a f1-score from 0.907 to 0.823. And we save the best model based on the f1-score, that is from iteration 2.
+
 ![image](https://github.com/user-attachments/assets/85ac08d1-ee92-4906-b0cb-2ad231997048)
 
 ### The performance of different models
+
+We choose 5 models to evaluate their performance on the task of intention recognition. We find that the performance of different models is highly sensitive to the instruction prompt, thus we rewrite the instruction prompt for each model, the other parameters are kept the same. That is 160 small iterations each time, r = 64 and alpha = 1. The length of the training dataset is 1014.
+
+We found that the best model is mistral-7b, with a f1-score of 0.972, signifantly higher than the other models. The worst model is llama, with a f1-score of 0.748, which results from the low understanding of the task, the response of the model is invalid frequently.
+So we can't parse the response to the list of intentions, which is the key to the fail of the model.
+
 ![image](https://github.com/user-attachments/assets/f6fa09a4-f42b-471a-b662-c1d9ce8271f2)
 
+We also evaluate the number of wrong predictions and invalid predictions of each model, 
 
