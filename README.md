@@ -136,7 +136,9 @@ We propose this pipeline in the "abstract" directory, which contains 5 files:
     - is_wrong
     See more details in the file.
 
-We implement the pipeline in the "example" directory, see more details in the files.
+We implement the pipeline in the "example" directory
+
+See more details in the files.
 
 ## Experiments
 
@@ -156,13 +158,13 @@ The results show that the prompt model achieves a high level of performance afte
 
 The formula of the LoRA (Low-Rank Adaptation) is:
 
-$W = W_0 + \alpha \cdot A \times B$
+$$W = W_0 + \alpha \cdot A \times B$$
 
-where $W_0$ is the original model weights, $A$ is the low-rank matrix, and $B$ is the prompt matrix.
+where $$W_0$$ is the original model weights, $$A$$ is the low-rank matrix, and $$B$$ is the prompt matrix.
 
-The shape of $A$ and $B$ are determined by the rank parameter. A: $m \times r$, B: $r \times n$, W: $m \times n$.
+The shape of $$A$$ and $$B$$ are determined by the rank parameter. A: $$m \times r$$, B: $$r \times n$$, W: $$m \times n$$.
 
-The PEFT model will lock the weights of the original model weight $W_0$, and only update the matrix $A$ and $B$.
+The PEFT model will lock the weights of the original model weight $$W_0$$, and only update the matrix $$A$$ and $$B$$.
 
 This can substantially reduce the computational cost of training the model, as only a small number of parameters need to be updated.
 
@@ -185,3 +187,11 @@ A higher alpha allows for more fine-grained adjustments. A lower alpha may not a
 We can see that the model performance is optimal when the alpha is around 1.
 
 ![image](https://github.com/user-attachments/assets/02a5c65a-aa9f-40ad-9a3e-c2ef41a9edbb)
+
+### The performance of data augmentation
+![image](https://github.com/user-attachments/assets/85ac08d1-ee92-4906-b0cb-2ad231997048)
+
+### The performance of different models
+![image](https://github.com/user-attachments/assets/f6fa09a4-f42b-471a-b662-c1d9ce8271f2)
+
+
