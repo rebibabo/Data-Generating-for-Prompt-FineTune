@@ -211,4 +211,9 @@ So we can't parse the response to the list of intentions, which is the key to th
 ![image](https://github.com/user-attachments/assets/f6fa09a4-f42b-471a-b662-c1d9ce8271f2)
 
 We also evaluate the number of wrong predictions and invalid predictions of each model, 
+![image](https://github.com/user-attachments/assets/9b385123-1954-4c25-bf0d-834452cce451)
+
+![image](https://github.com/user-attachments/assets/b34e22eb-23c9-48e3-9717-43cd70043ec4)
+
+
 
