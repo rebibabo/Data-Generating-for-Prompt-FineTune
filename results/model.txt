@@ -1,13 +1,49 @@
 model = unsloth/mistral-7b-instruct-v0.3-bnb-4bit
-	precision:  0.9562
-	recall:  0.9486
-	f1_score:  0.9447
+	precision:  0.9762
+	recall:  0.9752
+	f1_score:  0.9718
 	train dataset size: 1014
-	wrong dataset size: 40
+	wrong dataset size: 22
+    invalid dataset size: 0
+    train time: 11:06
+    test time: 3:48
 
 model = unsloth/Qwen2.5-7B-Instruct-bnb-4bit
-    precision:  0.8214
-    recall:  0.8333
-    f1_score:  0.8189
+    precision:  0.8876
+    recall:  0.8752
+    f1_score:  0.8745
     train dataset size: 1014
-    wrong dataset size: 68
+    wrong dataset size: 56
+    invalid dataset size: 2
+    train time: 9:51
+    test time: 2:24
+
+model = unsloth/Meta-Llama-3.1-8B-bnb-4bit
+	precision:  0.7533
+	recall:  0.7524
+	f1_score:  0.7482
+	train dataset size: 1014
+	wrong dataset size: 77
+    invalid dataset size: 31
+    train time: 11:15
+    test time: 4:37
+
+model = unsloth/gemma-2-9b-bnb-4bit
+	precision:  0.8800
+	recall:  0.8619
+	f1_score:  0.8667
+	train dataset size: 1014
+	wrong dataset size: 45
+    invalid dataset size: 15
+    train time: 14:06
+    test time: 6:35
+
+model = unsloth/Phi-3.5-mini-instruct
+	precision:  0.8211
+	recall:  0.8152
+	f1_score:  0.8084
+	train dataset size: 1014
+	wrong dataset size: 84
+    invalid dataset size: 0
+    train time: 9:32
+    test time: 4:06

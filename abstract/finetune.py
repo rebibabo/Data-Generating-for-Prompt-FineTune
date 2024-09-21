@@ -11,7 +11,7 @@ import torch
 class FineTune:
     def __init__(self, 
         model_name: str = "unsloth/mistral-7b-instruct-v0.3-bnb-4bit",      
-        max_seq_length: int = 2048,                 
+        max_seq_length: int = 200,                 
         dtype = None,                               
         load_in_4bit: bool = True,                 
         Evaluator: Any = None, 
@@ -185,7 +185,11 @@ class FineTune:
 
             trainer_stats = trainer.train()
 
-            evaluator = self.Evaluator(model, self.tokenizer)
+            if not aug_funcs:
+                model.save_pretrained(model_save_path)
+                self.tokenizer.save_pretrained(model_save_path)
+
+            evaluator = self.Evaluator(model, self.tokenizer, max_new_tokens=100)
             result = evaluator.evaluate(test_file_path=test_dataset_path, wrong_output_path=wrong_dataset_path)
             
             for key, value in result.items():

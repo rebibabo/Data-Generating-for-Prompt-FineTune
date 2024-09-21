@@ -15,6 +15,7 @@ import json
 def generate_seed(initial_size=300, max_query_size=2, min_rel_score=7):
     instruction = (
         "你是一个强大的意图识别专家，你能准确地识别输入中的意图类别，如果输入中的意图存在于#意图列表#中，则将其加入到返回结果中。\n"
+        "不要回答用户的问题，而是一个由[]括起来的列表，只允许返回用户输入中的所有意图列表，不允许解释理由。\n"
         "#意图列表#:\n{intentions}"
     )
     dataset = []

@@ -8,7 +8,7 @@ from tqdm import tqdm
 from typing import Any
 
 class ABCEvaluator(ABC):
-    def __init__(self, model, tokenizer):
+    def __init__(self, model, tokenizer, max_new_tokens: int = 100):
         '''
         Parameters:
             :model: Hugging Face Transformers model that has been fastened by unsloth
@@ -16,6 +16,7 @@ class ABCEvaluator(ABC):
         '''
         self.model = model
         self.tokenizer = tokenizer
+        self.max_new_tokens = max_new_tokens
         FastLanguageModel.for_inference(self.model) # Enable native 2x faster inference
 
     def inference(self, 
@@ -39,10 +40,10 @@ class ABCEvaluator(ABC):
 
         if stream:
             text_streamer = TextStreamer(self.tokenizer)
-            output = self.model.generate(**inputs, streamer = text_streamer, max_new_tokens = 2048)
+            output = self.model.generate(**inputs, streamer=text_streamer, max_new_tokens=self.max_new_tokens)
 
         else:
-            output = self.model.generate(**inputs, max_length = 2048, do_sample = True, top_p = 0.9, top_k = 50, temperature = 1.0, num_return_sequences = 1)
+            output = self.model.generate(**inputs, max_new_tokens=self.max_new_tokens, do_sample=True, top_p=0.9, top_k=50, temperature=1.0, num_return_sequences=1)
             output = self.tokenizer.batch_decode(output, skip_special_tokens = True)[0]
         return output
 
