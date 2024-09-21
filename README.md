@@ -187,3 +187,11 @@ A higher alpha allows for more fine-grained adjustments. A lower alpha may not a
 We can see that the model performance is optimal when the alpha is around 1.
 
 ![image](https://github.com/user-attachments/assets/02a5c65a-aa9f-40ad-9a3e-c2ef41a9edbb)
+
+### The performance of data augmentation
+![image](https://github.com/user-attachments/assets/85ac08d1-ee92-4906-b0cb-2ad231997048)
+
+### The performance of different models
+![image](https://github.com/user-attachments/assets/f6fa09a4-f42b-471a-b662-c1d9ce8271f2)
+
+
