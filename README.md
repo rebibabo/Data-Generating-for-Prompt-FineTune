@@ -107,7 +107,7 @@ See the code in the "original" directory
 We propose this pipeline in the "abstract" directory, which contains 5 files:
 - dataAug.py
 
-    We define the DataAugmentation class, which can clean the seed dataset according to the prompt rules and the similarity betwwen each query, and generate the augmented dataset.
+    We define the DataAugmentation class, which can clean the seed dataset according to the prompt rules and the similarity between each query, and generate the augmented dataset.
 
 - queryPool.py
 
@@ -121,8 +121,8 @@ We propose this pipeline in the "abstract" directory, which contains 5 files:
 
     See more details in the file.
 
-- finetune.py
-
+- finetune.pybe
+be
     We define the FineTune class, which is used to fine-tune the prompt model using the train dataset from scratch, and use the validation set to evaluate the performance of the prompt model.
     During each iteration , it will augment the wrong predictions using a list of augmentation functions.
     Finally, Saves the best model based on a metric.
@@ -134,6 +134,7 @@ We propose this pipeline in the "abstract" directory, which contains 5 files:
     - forward
     - metric
     - is_wrong
+   
     See more details in the file.
 
 We implement the pipeline in the "example" directory
